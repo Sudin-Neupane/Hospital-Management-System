@@ -302,3 +302,63 @@ void deletedoctor() {
     remove(DFILE); rename("dtmp.txt",DFILE);
     if (found) printf("Doctor deleted.\n"); else printf("ID not found.\n");
 }
+void addnurse() {
+    FILE *fp = fopen(NFILE, "a+");
+    if (!fp) { printf("Cannot open file.\n"); return; }
+    fseek(fp, 0, SEEK_END);
+    if (ftell(fp) == 0)
+        fprintf(fp, "ID|Name|Age|Gender|Dept|Shift|Ward|Phone|Salary|JoinDate\n");
+
+    struct nurse n;
+    char more = 'y';
+    while (more == 'y' || more == 'Y') {
+        printf("\n--- Add Nurse ---\n");
+
+        printf("Name: ");
+        fgets(n.name, 50, stdin); stripcr(n.name);
+        if (!goodname(n.name)) { printf("Invalid name.\n"); continue; }
+
+        printf("Age: ");
+        if (scanf("%d",&n.age)!=1||n.age<18||n.age>70){
+            printf("Invalid.\n"); while(getchar()!='\n'); continue;
+        }
+        while(getchar()!='\n');
+
+        printf("Gender (M/F): ");
+        scanf(" %c",&n.gender); n.gender=toupper(n.gender);
+        while(getchar()!='\n');
+        if (n.gender!='M'&&n.gender!='F'){printf("Invalid.\n");continue;}
+
+        printf("Department: ");
+        fgets(n.dept,40,stdin); stripcr(n.dept);
+
+        printf("Shift (Morning/Evening/Night): ");
+        fgets(n.shift,15,stdin); stripcr(n.shift);
+
+        printf("Assigned ward no: ");
+        if (scanf("%d",&n.assignedward)!=1){while(getchar()!='\n');continue;}
+        while(getchar()!='\n');
+
+        printf("Phone: ");
+        fgets(n.phone,15,stdin); stripcr(n.phone);
+        if (!goodphone(n.phone)){printf("Invalid phone.\n");continue;}
+
+        printf("Salary: ");
+        if (scanf("%lf",&n.salary)!=1||n.salary<0){
+            printf("Invalid.\n"); while(getchar()!='\n'); continue;
+        }
+        while(getchar()!='\n');
+
+        printf("Join date (DD/MM/YYYY): ");
+        fgets(n.joindate,12,stdin); stripcr(n.joindate);
+
+        n.id = nid++;
+        fprintf(fp,"%d|%s|%d|%c|%s|%s|%d|%s|%.2f|%s\n",
+            n.id,n.name,n.age,n.gender,n.dept,n.shift,n.assignedward,n.phone,n.salary,n.joindate);
+        printf("Nurse added. ID: N-%d\n",n.id);
+
+        printf("Add another? (y/n): ");
+        scanf(" %c",&more); while(getchar()!='\n');
+    }
+    fclose(fp);
+}
