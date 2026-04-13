@@ -506,3 +506,195 @@ void addpatient() {
     }
     fclose(fp);
 }
+
+void showpatients() {
+    FILE *fp=fopen(PFILE,"r");
+    if (!fp){printf("No patient records.\n");pause();return;}
+
+    struct patient p;
+    char line[300];
+    int n=0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-22s %-4s %-2s %-5s %-22s %-6s %-6s %-12s %-12s\n",
+        "ID","Name","Age","G","Blood","Disease","BedID","DocID","AdmitDate","Status");
+    printf("------------------------------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%4[^|]|%79[^|]|%d|%d|%14[^|]|%11[^|]|%14[^\n]",
+        &p.id,p.name,&p.age,&p.gender,p.blood,p.disease,&p.bedid,&p.doctorid,p.phone,p.admitdate,p.status)==11){
+        printf("%-6d %-22s %-4d %-2c %-5s %-22s %-6d %-6d %-12s %-12s\n",
+            p.id,p.name,p.age,p.gender,p.blood,p.disease,p.bedid,p.doctorid,p.admitdate,p.status);
+        n++;
+    }
+    if (n==0) printf("No records.\n");
+    else printf("\nTotal patients: %d\n",n);
+    fclose(fp);
+    pause();
+}
+
+void searchpatient() {
+    FILE *fp=fopen(PFILE,"r");
+    if (!fp){printf("No data.\n");pause();return;}
+
+    char kw[50];
+    printf("Search (name/disease/status): ");
+    fgets(kw,50,stdin); stripcr(kw);
+
+    struct patient p;
+    char line[300];
+    int n=0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-22s %-4s %-5s %-22s %-6s %-12s %-12s\n",
+        "ID","Name","Age","Blood","Disease","BedID","AdmitDate","Status");
+    printf("------------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%4[^|]|%79[^|]|%d|%d|%14[^|]|%11[^|]|%14[^\n]",
+        &p.id,p.name,&p.age,&p.gender,p.blood,p.disease,&p.bedid,&p.doctorid,p.phone,p.admitdate,p.status)==11){
+        if (strmatch(p.name,kw)||strmatch(p.disease,kw)||strmatch(p.status,kw)){
+            printf("%-6d %-22s %-4d %-5s %-22s %-6d %-12s %-12s\n",
+                p.id,p.name,p.age,p.blood,p.disease,p.bedid,p.admitdate,p.status);
+            n++;
+        }
+    }
+    if (n==0) printf("No match.\n");
+    else printf("\n%d found.\n",n);
+    fclose(fp);
+    pause();
+}
+
+void updatepatient() {
+    int target;
+    printf("Enter patient ID to update: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(PFILE,"r");
+    FILE *tmp=fopen("ptmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct patient p;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%4[^|]|%79[^|]|%d|%d|%14[^|]|%11[^|]|%14[^\n]",
+        &p.id,p.name,&p.age,&p.gender,p.blood,p.disease,&p.bedid,&p.doctorid,p.phone,p.admitdate,p.status)==11){
+        if (p.id==target){
+            found=1;
+            printf("Patient: %s | Status: %s | Bed: %d | Doctor: %d\n",
+                p.name,p.status,p.bedid,p.doctorid);
+            char buf[80];
+            printf("New status [%s]: ",p.status);
+            fgets(buf,15,stdin); stripcr(buf);
+            if (strlen(buf)>0) strcpy(p.status,buf);
+            printf("New bed ID [%d]: ",p.bedid);
+            fgets(buf,10,stdin); stripcr(buf);
+            if (strlen(buf)>0) p.bedid=atoi(buf);
+            printf("New doctor ID [%d]: ",p.doctorid);
+            fgets(buf,10,stdin); stripcr(buf);
+            if (strlen(buf)>0) p.doctorid=atoi(buf);
+            printf("New disease/diagnosis [%s]: ",p.disease);
+            fgets(buf,80,stdin); stripcr(buf);
+            if (strlen(buf)>0) strcpy(p.disease,buf);
+        }
+        fprintf(tmp,"%d|%s|%d|%c|%s|%s|%d|%d|%s|%s|%s\n",
+            p.id,p.name,p.age,p.gender,p.blood,p.disease,p.bedid,p.doctorid,p.phone,p.admitdate,p.status);
+    }
+    fclose(fp); fclose(tmp);
+    remove(PFILE); rename("ptmp.txt",PFILE);
+    if (found) printf("Patient updated.\n"); else printf("ID not found.\n");
+}
+
+void deletepatient() {
+    int target;
+    printf("Enter patient ID to delete: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(PFILE,"r");
+    FILE *tmp=fopen("ptmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct patient p;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%4[^|]|%79[^|]|%d|%d|%14[^|]|%11[^|]|%14[^\n]",
+        &p.id,p.name,&p.age,&p.gender,p.blood,p.disease,&p.bedid,&p.doctorid,p.phone,p.admitdate,p.status)==11){
+        if (p.id==target){found=1;continue;}
+        fprintf(tmp,"%d|%s|%d|%c|%s|%s|%d|%d|%s|%s|%s\n",
+            p.id,p.name,p.age,p.gender,p.blood,p.disease,p.bedid,p.doctorid,p.phone,p.admitdate,p.status);
+    }
+    fclose(fp); fclose(tmp);
+    remove(PFILE); rename("ptmp.txt",PFILE);
+    if (found) printf("Patient deleted.\n"); else printf("ID not found.\n");
+}
+
+void addbed() {
+    FILE *fp=fopen(BFILE,"a+");
+    if (!fp){printf("Cannot open file.\n");return;}
+    fseek(fp,0,SEEK_END);
+    if (ftell(fp)==0)
+        fprintf(fp,"ID|Ward|Type|Status|PatientID\n");
+
+    struct bed b;
+    char more='y';
+    while (more=='y'||more=='Y') {
+        printf("\n--- Add Bed ---\n");
+
+        printf("Ward number: ");
+        if (scanf("%d",&b.wardno)!=1){while(getchar()!='\n');continue;}
+        while(getchar()!='\n');
+
+        printf("Bed type (General/ICU/Private/Semi-Private): ");
+        fgets(b.type,20,stdin); stripcr(b.type);
+
+        printf("Status (Available/Occupied): ");
+        fgets(b.status,12,stdin); stripcr(b.status);
+
+        printf("Patient ID if occupied (0 if none): ");
+        if (scanf("%d",&b.patientid)!=1) b.patientid=0;
+        while(getchar()!='\n');
+
+        b.id=bid++;
+        fprintf(fp,"%d|%d|%s|%s|%d\n",b.id,b.wardno,b.type,b.status,b.patientid);
+        printf("Bed added. ID: B-%d\n",b.id);
+
+        printf("Add another? (y/n): ");
+        scanf(" %c",&more); while(getchar()!='\n');
+    }
+    fclose(fp);
+}
+
+void showbeds() {
+    FILE *fp=fopen(BFILE,"r");
+    if (!fp){printf("No bed records.\n");pause();return;}
+
+    struct bed b;
+    char line[300];
+    int total=0,avail=0,occ=0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-6s %-18s %-12s %-10s\n","ID","Ward","Type","Status","PatientID");
+    printf("--------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%d|%19[^|]|%11[^|]|%d\n",
+        &b.id,&b.wardno,b.type,b.status,&b.patientid)==5){
+        printf("%-6d %-6d %-18s %-12s %-10d\n",
+            b.id,b.wardno,b.type,b.status,b.patientid);
+        total++;
+        if (strmatch(b.status,"available")) avail++;
+        else occ++;
+    }
+    if (total==0) printf("No bed records.\n");
+    else {
+        printf("----------------------------------------------------\n");
+        printf("Total: %d  |  Available: %d  |  Occupied: %d\n",total,avail,occ);
+    }
+    fclose(fp);
+    pause();
+}
