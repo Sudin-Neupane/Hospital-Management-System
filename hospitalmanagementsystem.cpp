@@ -698,3 +698,40 @@ void showbeds() {
     fclose(fp);
     pause();
 }
+
+void updatebed() {
+    int target;
+    printf("Enter bed ID to update: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(BFILE,"r");
+    FILE *tmp=fopen("btmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct bed b;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%d|%19[^|]|%11[^|]|%d\n",
+        &b.id,&b.wardno,b.type,b.status,&b.patientid)==5){
+        if (b.id==target){
+            found=1;
+            printf("Bed %d | Ward %d | %s | Status: %s | Patient: %d\n",
+                b.id,b.wardno,b.type,b.status,b.patientid);
+            char buf[20];
+            printf("New status [%s]: ",b.status);
+            fgets(buf,12,stdin); stripcr(buf);
+            if (strlen(buf)>0) strcpy(b.status,buf);
+            printf("Patient ID (0 if none) [%d]: ",b.patientid);
+            fgets(buf,10,stdin); stripcr(buf);
+            if (strlen(buf)>0) b.patientid=atoi(buf);
+        }
+        fprintf(tmp,"%d|%d|%s|%s|%d\n",b.id,b.wardno,b.type,b.status,b.patientid);
+    }
+    fclose(fp); fclose(tmp);
+    remove(BFILE); rename("btmp.txt",BFILE);
+    if (found) printf("Bed updated.\n"); else printf("ID not found.\n");
+}
