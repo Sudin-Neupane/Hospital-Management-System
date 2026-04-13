@@ -219,3 +219,86 @@ void adddoctor() {
     }
     fclose(fp);
 }
+
+void showdoctors() {
+    FILE *fp = fopen(DFILE, "r");
+    if (!fp) { printf("No doctor records.\n"); pause(); return; }
+
+    struct doctor d;
+    char line[300];
+    int n = 0;
+    fgets(line, sizeof(line), fp);
+
+    printf("\n%-6s %-22s %-4s %-2s %-20s %-18s %-14s %-14s\n",
+        "ID","Name","Age","G","Specialization","Department","Qualification","Phone");
+    printf("--------------------------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp, "%d|%49[^|]|%d|%c|%49[^|]|%39[^|]|%49[^|]|%14[^|]|%29[^|]|%lf\n",
+        &d.id,d.name,&d.age,&d.gender,d.specialization,d.dept,d.qualification,d.phone,d.schedule,&d.salary)==10) {
+        printf("%-6d %-22s %-4d %-2c %-20s %-18s %-14s %-14s\n",
+            d.id,d.name,d.age,d.gender,d.specialization,d.dept,d.qualification,d.phone);
+        n++;
+    }
+    if (n == 0) printf("No records found.\n");
+    else printf("\nTotal doctors: %d\n", n);
+    fclose(fp);
+    pause();
+}
+
+void searchdoctor() {
+    FILE *fp = fopen(DFILE, "r");
+    if (!fp) { printf("No data.\n"); pause(); return; }
+
+    char kw[50];
+    printf("Search (name/specialization/dept): ");
+    fgets(kw, 50, stdin); stripcr(kw);
+
+    struct doctor d;
+    char line[300];
+    int n = 0;
+    fgets(line, sizeof(line), fp);
+
+    printf("\n%-6s %-22s %-20s %-18s %-14s %-28s\n",
+        "ID","Name","Specialization","Department","Phone","Schedule");
+    printf("--------------------------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp, "%d|%49[^|]|%d|%c|%49[^|]|%39[^|]|%49[^|]|%14[^|]|%29[^|]|%lf\n",
+        &d.id,d.name,&d.age,&d.gender,d.specialization,d.dept,d.qualification,d.phone,d.schedule,&d.salary)==10) {
+        if (strmatch(d.name,kw)||strmatch(d.specialization,kw)||strmatch(d.dept,kw)) {
+            printf("%-6d %-22s %-20s %-18s %-14s %-28s\n",
+                d.id,d.name,d.specialization,d.dept,d.phone,d.schedule);
+            n++;
+        }
+    }
+    if (n == 0) printf("No match.\n");
+    else printf("\n%d found.\n", n);
+    fclose(fp);
+    pause();
+}
+
+void deletedoctor() {
+    int target;
+    printf("Enter doctor ID to delete: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp = fopen(DFILE,"r");
+    FILE *tmp = fopen("dtmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct doctor d;
+    char line[300];
+    int found = 0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp, "%d|%49[^|]|%d|%c|%49[^|]|%39[^|]|%49[^|]|%14[^|]|%29[^|]|%lf\n",
+        &d.id,d.name,&d.age,&d.gender,d.specialization,d.dept,d.qualification,d.phone,d.schedule,&d.salary)==10) {
+        if (d.id==target){found=1;continue;}
+        fprintf(tmp,"%d|%s|%d|%c|%s|%s|%s|%s|%s|%.2f\n",
+            d.id,d.name,d.age,d.gender,d.specialization,d.dept,d.qualification,d.phone,d.schedule,d.salary);
+    }
+    fclose(fp); fclose(tmp);
+    remove(DFILE); rename("dtmp.txt",DFILE);
+    if (found) printf("Doctor deleted.\n"); else printf("ID not found.\n");
+}
