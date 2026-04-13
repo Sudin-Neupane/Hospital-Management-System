@@ -735,3 +735,69 @@ void updatebed() {
     remove(BFILE); rename("btmp.txt",BFILE);
     if (found) printf("Bed updated.\n"); else printf("ID not found.\n");
 }
+
+void deletebed() {
+    int target;
+    printf("Enter bed ID to delete: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(BFILE,"r");
+    FILE *tmp=fopen("btmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct bed b;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%d|%19[^|]|%11[^|]|%d\n",
+        &b.id,&b.wardno,b.type,b.status,&b.patientid)==5){
+        if (b.id==target){found=1;continue;}
+        fprintf(tmp,"%d|%d|%s|%s|%d\n",b.id,b.wardno,b.type,b.status,b.patientid);
+    }
+    fclose(fp); fclose(tmp);
+    remove(BFILE); rename("btmp.txt",BFILE);
+    if (found) printf("Bed removed.\n"); else printf("ID not found.\n");
+}
+
+void addmachine() {
+    FILE *fp=fopen(MFILE,"a+");
+    if (!fp){printf("Cannot open file.\n");return;}
+    fseek(fp,0,SEEK_END);
+    if (ftell(fp)==0)
+        fprintf(fp,"ID|Name|Department|Condition|LastService|AssignedTo\n");
+
+    struct machine m;
+    char more='y';
+    while (more=='y'||more=='Y') {
+        printf("\n--- Add Machine/Equipment ---\n");
+
+        printf("Machine name: ");
+        fgets(m.name,60,stdin); stripcr(m.name);
+        if (strlen(m.name)==0){printf("Cannot be empty.\n");continue;}
+
+        printf("Department: ");
+        fgets(m.dept,40,stdin); stripcr(m.dept);
+
+        printf("Condition (Good/Fair/Poor/Under Repair): ");
+        fgets(m.condition,15,stdin); stripcr(m.condition);
+
+        printf("Last service date (DD/MM/YYYY): ");
+        fgets(m.lastservice,12,stdin); stripcr(m.lastservice);
+
+        printf("Assigned to ward no (0 if general): ");
+        if (scanf("%d",&m.assignedto)!=1) m.assignedto=0;
+        while(getchar()!='\n');
+
+        m.id=mid++;
+        fprintf(fp,"%d|%s|%s|%s|%s|%d\n",
+            m.id,m.name,m.dept,m.condition,m.lastservice,m.assignedto);
+        printf("Machine added. ID: M-%d\n",m.id);
+
+        printf("Add another? (y/n): ");
+        scanf(" %c",&more); while(getchar()!='\n');
+    }
+    fclose(fp);
+}
