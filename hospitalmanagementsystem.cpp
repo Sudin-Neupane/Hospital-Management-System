@@ -362,3 +362,58 @@ void addnurse() {
     }
     fclose(fp);
 }
+
+void shownurses() {
+    FILE *fp = fopen(NFILE,"r");
+    if (!fp){printf("No nurse records.\n");pause();return;}
+
+    struct nurse n;
+    char line[300];
+    int cnt = 0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-22s %-4s %-2s %-18s %-10s %-6s %-14s %-10s\n",
+        "ID","Name","Age","G","Department","Shift","Ward","Phone","Salary");
+    printf("--------------------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%39[^|]|%14[^|]|%d|%14[^|]|%lf|%11[^\n]",
+        &n.id,n.name,&n.age,&n.gender,n.dept,n.shift,&n.assignedward,n.phone,&n.salary,n.joindate)==10){
+        printf("%-6d %-22s %-4d %-2c %-18s %-10s %-6d %-14s %-10.2f\n",
+            n.id,n.name,n.age,n.gender,n.dept,n.shift,n.assignedward,n.phone,n.salary);
+        cnt++;
+    }
+    if (cnt==0) printf("No records.\n");
+    else printf("\nTotal nurses: %d\n",cnt);
+    fclose(fp);
+    pause();
+}
+
+void searchnurse() {
+    FILE *fp = fopen(NFILE,"r");
+    if (!fp){printf("No data.\n");pause();return;}
+
+    char kw[50];
+    printf("Search (name/dept/shift): ");
+    fgets(kw,50,stdin); stripcr(kw);
+
+    struct nurse n;
+    char line[300];
+    int cnt = 0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-22s %-18s %-10s %-6s %-14s\n","ID","Name","Department","Shift","Ward","Phone");
+    printf("----------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%39[^|]|%14[^|]|%d|%14[^|]|%lf|%11[^\n]",
+        &n.id,n.name,&n.age,&n.gender,n.dept,n.shift,&n.assignedward,n.phone,&n.salary,n.joindate)==10){
+        if (strmatch(n.name,kw)||strmatch(n.dept,kw)||strmatch(n.shift,kw)){
+            printf("%-6d %-22s %-18s %-10s %-6d %-14s\n",
+                n.id,n.name,n.dept,n.shift,n.assignedward,n.phone);
+            cnt++;
+        }
+    }
+    if (cnt==0) printf("No match.\n");
+    else printf("\n%d found.\n",cnt);
+    fclose(fp);
+    pause();
+}
