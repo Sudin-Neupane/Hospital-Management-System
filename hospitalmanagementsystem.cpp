@@ -801,3 +801,58 @@ void addmachine() {
     }
     fclose(fp);
 }
+
+void showmachines() {
+    FILE *fp=fopen(MFILE,"r");
+    if (!fp){printf("No machine records.\n");pause();return;}
+
+    struct machine m;
+    char line[300];
+    int n=0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-30s %-20s %-14s %-14s %-6s\n",
+        "ID","Name","Department","Condition","Last Service","Ward");
+    printf("-----------------------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%59[^|]|%39[^|]|%14[^|]|%11[^|]|%d\n",
+        &m.id,m.name,m.dept,m.condition,m.lastservice,&m.assignedto)==6){
+        printf("%-6d %-30s %-20s %-14s %-14s %-6d\n",
+            m.id,m.name,m.dept,m.condition,m.lastservice,m.assignedto);
+        n++;
+    }
+    if (n==0) printf("No records.\n");
+    else printf("\nTotal machines/equipment: %d\n",n);
+    fclose(fp);
+    pause();
+}
+
+void searchmachine() {
+    FILE *fp=fopen(MFILE,"r");
+    if (!fp){printf("No data.\n");pause();return;}
+
+    char kw[50];
+    printf("Search (name/dept/condition): ");
+    fgets(kw,50,stdin); stripcr(kw);
+
+    struct machine m;
+    char line[300];
+    int n=0;
+    fgets(line,sizeof(line),fp);
+
+    printf("\n%-6s %-30s %-20s %-14s %-14s\n","ID","Name","Department","Condition","Last Service");
+    printf("--------------------------------------------------------------------------\n");
+
+    while (fscanf(fp,"%d|%59[^|]|%39[^|]|%14[^|]|%11[^|]|%d\n",
+        &m.id,m.name,m.dept,m.condition,m.lastservice,&m.assignedto)==6){
+        if (strmatch(m.name,kw)||strmatch(m.dept,kw)||strmatch(m.condition,kw)){
+            printf("%-6d %-30s %-20s %-14s %-14s\n",
+                m.id,m.name,m.dept,m.condition,m.lastservice);
+            n++;
+        }
+    }
+    if (n==0) printf("No match.\n");
+    else printf("\n%d found.\n",n);
+    fclose(fp);
+    pause();
+}
