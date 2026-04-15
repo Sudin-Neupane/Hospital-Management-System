@@ -856,3 +856,201 @@ void searchmachine() {
     fclose(fp);
     pause();
 }
+
+void updatemachine() {
+    int target;
+    printf("Enter machine ID to update: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(MFILE,"r");
+    FILE *tmp=fopen("mtmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct machine m;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%59[^|]|%39[^|]|%14[^|]|%11[^|]|%d\n",
+        &m.id,m.name,m.dept,m.condition,m.lastservice,&m.assignedto)==6){
+        if (m.id==target){
+            found=1;
+            printf("Machine: %s | Condition: %s | Last service: %s\n",
+                m.name,m.condition,m.lastservice);
+            char buf[60];
+            printf("New condition [%s]: ",m.condition);
+            fgets(buf,15,stdin); stripcr(buf);
+            if (strlen(buf)>0) strcpy(m.condition,buf);
+            printf("New last service date [%s]: ",m.lastservice);
+            fgets(buf,12,stdin); stripcr(buf);
+            if (strlen(buf)>0) strcpy(m.lastservice,buf);
+            printf("Assigned ward (0 for general) [%d]: ",m.assignedto);
+            fgets(buf,10,stdin); stripcr(buf);
+            if (strlen(buf)>0) m.assignedto=atoi(buf);
+        }
+        fprintf(tmp,"%d|%s|%s|%s|%s|%d\n",
+            m.id,m.name,m.dept,m.condition,m.lastservice,m.assignedto);
+    }
+    fclose(fp); fclose(tmp);
+    remove(MFILE); rename("mtmp.txt",MFILE);
+    if (found) printf("Machine updated.\n"); else printf("ID not found.\n");
+}
+
+void deletemachine() {
+    int target;
+    printf("Enter machine ID to delete: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(MFILE,"r");
+    FILE *tmp=fopen("mtmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct machine m;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%59[^|]|%39[^|]|%14[^|]|%11[^|]|%d\n",
+        &m.id,m.name,m.dept,m.condition,m.lastservice,&m.assignedto)==6){
+        if (m.id==target){found=1;continue;}
+        fprintf(tmp,"%d|%s|%s|%s|%s|%d\n",
+            m.id,m.name,m.dept,m.condition,m.lastservice,m.assignedto);
+    }
+    fclose(fp); fclose(tmp);
+    remove(MFILE); rename("mtmp.txt",MFILE);
+    if (found) printf("Machine removed.\n"); else printf("ID not found.\n");
+}
+
+void doctormenu() {
+    int ch;
+    while (1) {
+        printf("\n====== Doctor Records ======\n");
+        printf("1. Add doctor\n");
+        printf("2. Show all\n");
+        printf("3. Search\n");
+        printf("4. Delete\n");
+        printf("0. Back\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) adddoctor();
+        else if (ch==2) showdoctors();
+        else if (ch==3) searchdoctor();
+        else if (ch==4) deletedoctor();
+        else if (ch==0) break;
+        else printf("Invalid.\n");
+    }
+}
+
+void nursemenu() {
+    int ch;
+    while (1) {
+        printf("\n====== Nurse Records ======\n");
+        printf("1. Add nurse\n");
+        printf("2. Show all\n");
+        printf("3. Search\n");
+        printf("4. Delete\n");
+        printf("0. Back\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) addnurse();
+        else if (ch==2) shownurses();
+        else if (ch==3) searchnurse();
+        else if (ch==4) deletenurse();
+        else if (ch==0) break;
+        else printf("Invalid.\n");
+    }
+}
+
+void patientmenu() {
+    int ch;
+    while (1) {
+        printf("\n====== Patient Records ======\n");
+        printf("1. Admit patient\n");
+        printf("2. Show all\n");
+        printf("3. Search\n");
+        printf("4. Update record\n");
+        printf("5. Delete record\n");
+        printf("0. Back\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) addpatient();
+        else if (ch==2) showpatients();
+        else if (ch==3) searchpatient();
+        else if (ch==4) updatepatient();
+        else if (ch==5) deletepatient();
+        else if (ch==0) break;
+        else printf("Invalid.\n");
+    }
+}
+
+void bedmenu() {
+    int ch;
+    while (1) {
+        printf("\n====== Bed Records ======\n");
+        printf("1. Add bed\n");
+        printf("2. Show all\n");
+        printf("3. Update bed\n");
+        printf("4. Delete bed\n");
+        printf("0. Back\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) addbed();
+        else if (ch==2) showbeds();
+        else if (ch==3) updatebed();
+        else if (ch==4) deletebed();
+        else if (ch==0) break;
+        else printf("Invalid.\n");
+    }
+}
+
+void machinemenu() {
+    int ch;
+    while (1) {
+        printf("\n====== Machine / Equipment Records ======\n");
+        printf("1. Add machine\n");
+        printf("2. Show all\n");
+        printf("3. Search\n");
+        printf("4. Update condition\n");
+        printf("5. Delete machine\n");
+        printf("0. Back\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) addmachine();
+        else if (ch==2) showmachines();
+        else if (ch==3) searchmachine();
+        else if (ch==4) updatemachine();
+        else if (ch==5) deletemachine();
+        else if (ch==0) break;
+        else printf("Invalid.\n");
+    }
+}
+
+int main() {
+    loadids();
+    int ch;
+    while (1) {
+        printf("\n========================================\n");
+        printf("     Hospital Management System\n");
+        printf("========================================\n");
+        printf("1. Doctor Records\n");
+        printf("2. Nurse Records\n");
+        printf("3. Patient Records\n");
+        printf("4. Bed Records\n");
+        printf("5. Machine / Equipment Records\n");
+        printf("0. Exit\n");
+        printf("Choice: ");
+        scanf("%d",&ch); while(getchar()!='\n');
+        if (ch==1) doctormenu();
+        else if (ch==2) nursemenu();
+        else if (ch==3) patientmenu();
+        else if (ch==4) bedmenu();
+        else if (ch==5) machinemenu();
+        else if (ch==0) { printf("Goodbye.\n"); break; }
+        else printf("Invalid option.\n");
+    }
+    return 0;
+}
