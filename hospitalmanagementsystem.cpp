@@ -417,3 +417,92 @@ void searchnurse() {
     fclose(fp);
     pause();
 }
+
+void deletenurse() {
+    int target;
+    printf("Enter nurse ID to delete: ");
+    if (scanf("%d",&target)!=1){while(getchar()!='\n');return;}
+    while(getchar()!='\n');
+
+    FILE *fp=fopen(NFILE,"r");
+    FILE *tmp=fopen("ntmp.txt","w");
+    if (!fp||!tmp){printf("File error.\n");return;}
+
+    struct nurse n;
+    char line[300];
+    int found=0;
+    fgets(line,sizeof(line),fp);
+    fprintf(tmp,"%s",line);
+
+    while (fscanf(fp,"%d|%49[^|]|%d|%c|%39[^|]|%14[^|]|%d|%14[^|]|%lf|%11[^\n]",
+        &n.id,n.name,&n.age,&n.gender,n.dept,n.shift,&n.assignedward,n.phone,&n.salary,n.joindate)==10){
+        if (n.id==target){found=1;continue;}
+        fprintf(tmp,"%d|%s|%d|%c|%s|%s|%d|%s|%.2f|%s\n",
+            n.id,n.name,n.age,n.gender,n.dept,n.shift,n.assignedward,n.phone,n.salary,n.joindate);
+    }
+    fclose(fp); fclose(tmp);
+    remove(NFILE); rename("ntmp.txt",NFILE);
+    if (found) printf("Nurse deleted.\n"); else printf("ID not found.\n");
+}
+
+void addpatient() {
+    FILE *fp = fopen(PFILE,"a+");
+    if (!fp){printf("Cannot open file.\n");return;}
+    fseek(fp,0,SEEK_END);
+    if (ftell(fp)==0)
+        fprintf(fp,"ID|Name|Age|Gender|Blood|Disease|BedID|DoctorID|Phone|AdmitDate|Status\n");
+
+    struct patient p;
+    char more='y';
+    while (more=='y'||more=='Y') {
+        printf("\n--- Admit Patient ---\n");
+
+        printf("Name: ");
+        fgets(p.name,50,stdin); stripcr(p.name);
+        if (!goodname(p.name)){printf("Invalid name.\n");continue;}
+
+        printf("Age: ");
+        if (scanf("%d",&p.age)!=1||p.age<0||p.age>120){
+            printf("Invalid.\n"); while(getchar()!='\n'); continue;
+        }
+        while(getchar()!='\n');
+
+        printf("Gender (M/F): ");
+        scanf(" %c",&p.gender); p.gender=toupper(p.gender);
+        while(getchar()!='\n');
+        if (p.gender!='M'&&p.gender!='F'){printf("Invalid.\n");continue;}
+
+        printf("Blood group: ");
+        fgets(p.blood,5,stdin); stripcr(p.blood);
+
+        printf("Disease/Diagnosis: ");
+        fgets(p.disease,80,stdin); stripcr(p.disease);
+
+        printf("Assigned bed ID (0 if none): ");
+        if (scanf("%d",&p.bedid)!=1){while(getchar()!='\n');p.bedid=0;}
+        while(getchar()!='\n');
+
+        printf("Assigned doctor ID (0 if none): ");
+        if (scanf("%d",&p.doctorid)!=1){while(getchar()!='\n');p.doctorid=0;}
+        while(getchar()!='\n');
+
+        printf("Phone: ");
+        fgets(p.phone,15,stdin); stripcr(p.phone);
+        if (!goodphone(p.phone)){printf("Invalid phone.\n");continue;}
+
+        printf("Admit date (DD/MM/YYYY): ");
+        fgets(p.admitdate,12,stdin); stripcr(p.admitdate);
+
+        printf("Status (Admitted/Discharged/Critical): ");
+        fgets(p.status,15,stdin); stripcr(p.status);
+
+        p.id = pid++;
+        fprintf(fp,"%d|%s|%d|%c|%s|%s|%d|%d|%s|%s|%s\n",
+            p.id,p.name,p.age,p.gender,p.blood,p.disease,p.bedid,p.doctorid,p.phone,p.admitdate,p.status);
+        printf("Patient admitted. ID: P-%d\n",p.id);
+
+        printf("Add another? (y/n): ");
+        scanf(" %c",&more); while(getchar()!='\n');
+    }
+    fclose(fp);
+}
